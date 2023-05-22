@@ -13,11 +13,28 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def isUserAllowed(user) -> bool:
+    return user.username in os.getenv("USERS_ALLOWED").split(",")
+
+
+async def authGuard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    # TODO: Temp solution, check if user is allowed to use the bot
+    if not isUserAllowed(update.effective_user):
+        await update.message.reply_text("You are not allowed to use this bot")
+        return False
+    return True
+
 # Define a few command handlers. These usually take the two arguments update and
 # context.
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not (await authGuard(update, context)):
+        return
+
     """Send a message when the command /start is issued."""
     user = update.effective_user
+    logger.info("User %s started the conversation.", user)
     await update.message.reply_html(
         rf"Hi {user.mention_html()}!",
         reply_markup=ForceReply(selective=True),
@@ -25,11 +42,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not (await authGuard(update, context)):
+        return
+
     """Send a message when the command /help is issued."""
     await update.message.reply_text("Help!")
 
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not (await authGuard(update, context)):
+        return
+
     """Echo the user message."""
     await update.message.reply_text(update.message.text)
 
