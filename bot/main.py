@@ -1,7 +1,24 @@
 import logging
 import os
+import hashlib
+import datetime
+
+from telegram import __version__ as TG_VER
+
+try:
+    from telegram import __version_info__
+except ImportError:
+    __version_info__ = (0, 0, 0, 0, 0)  # type: ignore[assignment]
+
+if __version_info__ < (20, 0, 0, "alpha", 1):
+    raise RuntimeError(
+        f"This example is not compatible with your current PTB version {TG_VER}. To view the "
+        f"{TG_VER} version of this example, "
+        f"visit https://docs.python-telegram-bot.org/en/v{TG_VER}/examples.html"
+    )
+
 from dotenv import load_dotenv
-from telegram import ForceReply, Update
+from telegram import ForceReply, Update, Bot
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
 load_dotenv()
@@ -41,20 +58,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if not (await authGuard(update, context)):
-        return
-
-    """Send a message when the command /help is issued."""
-    await update.message.reply_text("Help!")
-
-
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not (await authGuard(update, context)):
         return
 
+    # Send a scheduled message in 10 minutes
+    scheduled_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=10)
+
     """Echo the user message."""
-    await update.message.reply_text(update.message.text)
+    # Calculate hash of the message
+    hash = hashlib.sha256(update.message.text.encode()).hexdigest()
+    msg = f"{hash[-5:]} {update.message.text} - {scheduled_time.strftime('%Y-%m-%d %H:%M:%S')}"
+    await update.message.reply_text(msg)
 
 
 def main() -> None:
@@ -67,7 +82,6 @@ def main() -> None:
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
 
     # on non command i.e message - echo the message on Telegram
     application.add_handler(MessageHandler(
