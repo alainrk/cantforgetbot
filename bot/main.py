@@ -2,6 +2,7 @@ import logging
 import os
 import hashlib
 import datetime
+from dotenv import load_dotenv
 
 from telegram import __version__ as TG_VER
 
@@ -17,7 +18,6 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
         f"visit https://docs.python-telegram-bot.org/en/v{TG_VER}/examples.html"
     )
 
-from dotenv import load_dotenv
 from telegram import ForceReply, Update, Bot
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
