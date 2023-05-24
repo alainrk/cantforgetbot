@@ -7,26 +7,28 @@ from firebase_admin import firestore
 
 load_dotenv()
 
-firebaseProjectKeyFilename = "firebase-service-account-key.json"
-firebaseProjectId = os.getenv('FIREBASE_PROJECT_ID')
 
-# Initialize Firebase Admin SDK
-script_dir = os.path.dirname(os.path.realpath(__file__))
-key_file_path = os.path.join(
-    script_dir, "..", "data", firebaseProjectKeyFilename)
-cred = credentials.Certificate(key_file_path)
+class DatabaseConfig:
+    def __init__(self, key_file_path: str):
+        self.key_file_path = key_file_path
 
-firebase_admin.initialize_app(cred, {
-    "databaseURL": f"https://{firebaseProjectId}.firebaseio.com"
-})
 
-# Write user json in the users firestore collection
-db = firestore.client()
-db.collection("users").document("alainrk").set({
-    "firstname": "Alain",
-    "lastname": "Kramar",
-})
+class Database:
+    def __init__(self, config: DatabaseConfig):
+        self.config = config
 
-# Read data from the database
-# data = ref.get()
-# print(data)
+        cred = credentials.Certificate(self.config.key_file_path)
+
+        firebase_admin.initialize_app(cred, {
+            "databaseURL": f"https://{cred.project_id}.firebaseio.com"
+        })
+
+        # Write user json in the users firestore collection
+        self.db = firestore.client()
+
+    def test(self, msg: str):
+        self.db.collection("users").document("alainrk").set({
+            "firstname": "Alain",
+            "lastname": "Test",
+            "msg": msg
+        })

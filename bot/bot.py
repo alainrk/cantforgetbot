@@ -5,6 +5,7 @@ import os
 import hashlib
 import datetime
 from dotenv import load_dotenv
+from firebase import Database
 
 import log
 logger = log.setup_logger("bot")
@@ -37,46 +38,43 @@ async def authGuard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
         return False
     return True
 
-# Define a few command handlers. These usually take the two arguments update and
-# context.
-
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if not (await authGuard(update, context)):
-        return
-
-    """Send a message when the command /start is issued."""
-    user = update.effective_user
-    logger.info(f"User {user} started the conversation.")
-    await update.message.reply_html(
-        rf"Hi {user.mention_html()}!",
-        reply_markup=ForceReply(selective=True),
-    )
-
-
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if not (await authGuard(update, context)):
-        return
-
-    # Send a scheduled message in 10 minutes
-    scheduled_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=10)
-
-    """Echo the user message."""
-    # Calculate hash of the message
-    hash = hashlib.sha256(update.message.text.encode()).hexdigest()
-    msg = f"{hash[-5:]} {update.message.text} - {scheduled_time.strftime('%Y-%m-%d %H:%M:%S')}"
-    await update.message.reply_text(msg)
-
 
 class Bot:
-    def __init__(self, token):
+    def __init__(self, token, db: Database):
+        self.db = db
         self.application = Application.builder().token(token).build()
         self.__set_handlers()
 
     def __set_handlers(self):
-        self.application.add_handler(CommandHandler("start", start))
+        self.application.add_handler(
+            CommandHandler("start", self.__start_handler))
         self.application.add_handler(MessageHandler(
-            filters.TEXT & ~filters.COMMAND, echo))
+            filters.TEXT & ~filters.COMMAND, self.__text_handler))
 
     def run(self):
         self.application.run_polling()
+
+    async def __text_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not (await authGuard(update, context)):
+            return
+
+        # XXX: Doing some tests
+        scheduled_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=10)
+        hash = hashlib.sha256(update.message.text.encode()).hexdigest()
+        msg = f"{hash[-5:]} {update.message.text} - {scheduled_time.strftime('%Y-%m-%d %H:%M:%S')}"
+
+        self.db.test(msg)
+
+        await update.message.reply_text(msg)
+
+    async def __start_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not (await authGuard(update, context)):
+            return
+
+        """Send a message when the command /start is issued."""
+        user = update.effective_user
+        logger.info(f"User {user} started the conversation.")
+        try:
+            await update.message.reply_text(f"Hi {user.full_name}!")
+        except Exception as e:
+            logger.error(f"Error while sending message: {e}")
