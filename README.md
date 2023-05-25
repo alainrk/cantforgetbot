@@ -17,5 +17,10 @@ pip3 install -r requirements.txt
 
 ### Run
 
-TODO
+```sh
+# Run bot
+make run
 
+# Live reload server (requires nodemon)
+make dev
+```
