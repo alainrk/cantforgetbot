@@ -26,9 +26,15 @@ class Database:
         # Write user json in the users firestore collection
         self.db = firestore.client()
 
-    def test(self, msg: str):
-        self.db.collection("users").document("alainrk").set({
-            "firstname": "Alain",
-            "lastname": "Test",
-            "msg": msg
+    #
+    def add_user(self, username: str, id: int, firstname: str, lastname: str):
+        self.db.collection("users").document(username).set({
+            "username": username,
+            "firstname": firstname if firstname else "name-not-set",
+            "lastname": lastname if lastname else "",
+            "id": id,
+            "context": {}
         })
+
+    def get_user(self, username: str):
+        return self.db.collection("users").document(username).get()

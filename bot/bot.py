@@ -46,13 +46,33 @@ class Bot:
         self.__set_handlers()
 
     def __set_handlers(self):
+        # self.application.add_handler(
+        #     CommandHandler("start", self.__start_handler))
+        # self.application.add_handler(MessageHandler(
+        #     filters.TEXT & ~filters.COMMAND, self.__text_handler))
+
+        # Single handler for everything, internal FSM will be used to handle the flow
         self.application.add_handler(
-            CommandHandler("start", self.__start_handler))
-        self.application.add_handler(MessageHandler(
-            filters.TEXT & ~filters.COMMAND, self.__text_handler))
+            MessageHandler(filters.ALL, self.__process_message))
 
     def run(self):
         self.application.run_polling()
+
+    async def __process_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not (await authGuard(update, context)):
+            return
+
+        user = self.db.get_user(update.effective_user.username)
+        if not user.exists:
+            self.db.add_user(update.effective_user.username, update.effective_user.id,
+                             update.effective_user.first_name, update.effective_user.last_name)
+
+        # XXX: Doing some tests
+        # scheduled_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=10)
+        # hash = hashlib.sha256(update.message.text.encode()).hexdigest()
+        # msg = f"{hash[-5:]} {update.message.text} - {scheduled_time.strftime('%Y-%m-%d %H:%M:%S')}"
+
+        await update.message.reply_text(f"{str(user)}")
 
     async def __text_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not (await authGuard(update, context)):
