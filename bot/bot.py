@@ -27,16 +27,20 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
 load_dotenv()
 
 
-def isUserAllowed(user) -> bool:
+def is_user_allowed(user) -> bool:
     return user.username in os.getenv("USERS_ALLOWED").split(",")
 
 
-async def authGuard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+async def auth_guard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     # TODO: Temp solution, check if user is allowed to use the bot
-    if not isUserAllowed(update.effective_user):
+    if not is_user_allowed(update.effective_user):
         await update.message.reply_text("You are not allowed to use this bot")
         return False
     return True
+
+
+async def is_command(text: str) -> bool:
+    return text.startswith("/") and len(text.split()) == 1
 
 
 class Bot:
@@ -46,11 +50,6 @@ class Bot:
         self.__set_handlers()
 
     def __set_handlers(self):
-        # self.application.add_handler(
-        #     CommandHandler("start", self.__start_handler))
-        # self.application.add_handler(MessageHandler(
-        #     filters.TEXT & ~filters.COMMAND, self.__text_handler))
-
         # Single handler for everything, internal FSM will be used to handle the flow
         self.application.add_handler(
             MessageHandler(filters.ALL, self.__process_message))
@@ -59,7 +58,7 @@ class Bot:
         self.application.run_polling()
 
     async def __process_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        if not (await authGuard(update, context)):
+        if not (await auth_guard(update, context)):
             return
 
         user = self.db.get_user(update.effective_user.username)
@@ -73,28 +72,3 @@ class Bot:
         # msg = f"{hash[-5:]} {update.message.text} - {scheduled_time.strftime('%Y-%m-%d %H:%M:%S')}"
 
         await update.message.reply_text(f"{str(user)}")
-
-    async def __text_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        if not (await authGuard(update, context)):
-            return
-
-        # XXX: Doing some tests
-        scheduled_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=10)
-        hash = hashlib.sha256(update.message.text.encode()).hexdigest()
-        msg = f"{hash[-5:]} {update.message.text} - {scheduled_time.strftime('%Y-%m-%d %H:%M:%S')}"
-
-        self.db.test(msg)
-
-        await update.message.reply_text(msg)
-
-    async def __start_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        if not (await authGuard(update, context)):
-            return
-
-        """Send a message when the command /start is issued."""
-        user = update.effective_user
-        logger.info(f"User {user} started the conversation.")
-        try:
-            await update.message.reply_text(f"Hi {user.full_name}!")
-        except Exception as e:
-            logger.error(f"Error while sending message: {e}")
