@@ -1,0 +1,74 @@
+{
+  "parameters": {
+    "help-message": {
+      "description": "Help message",
+      "type": "string",
+      "value": "TODO"
+    },
+    "firstname": {
+      "description": "Firstname of the user",
+      "type": "runtime",
+      "default": "<Missing Firstname>"
+    }
+  },
+  "steps": {
+    "command-start": {
+      "description": "Triggered by /start command. Answers with a greeting and the help message.",
+      "type": "toplevel",
+      "output": {
+        "type": "string",
+        "value": "Hello [[firstname]]! [[help-message]]"
+      }
+    },
+    "toplevel-key-given": {
+      "description": "User sent a key (word, sentence, whatever) to start the flow.",
+      "type": "toplevel",
+      "output": {
+        "type": "logic",
+        "code": "new-key-given"
+      }
+    },
+    "followup-key-given-save": {
+      "description": "",
+      "type": "followup",
+      "output": {
+        "type": "logic",
+        "code": "key-given-save"
+      }
+    },
+    "followup-key-given-add-value": {
+      "description": "",
+      "type": "followup",
+      "output": {
+        "type": "logic",
+        "code": "key-given-add-value"
+      }
+    },
+    "followup-key-given-cancel": {
+      "description": "",
+      "type": "followup",
+      "output": {
+        "type": "logic",
+        "code": "key-given-cancel"
+      }
+    }
+  },
+  "logics": {
+    "new-key-given": {
+      "description": "Verify if the key is valid and new for the user. Reply with the list of possible actions (Save, Add Value, Cancel, Update (if value already exists)).",
+      "function": "newKeyGiven"
+    },
+    "key-given-save": {
+      "description": "Save the given key and set reminders.",
+      "function": "keyGivenSave"
+    },
+    "key-given-add-value": {
+      "description": "Reply with a message to retrieve the value.",
+      "function": "keyGivenAddValue"
+    },
+    "key-given-cancel": {
+      "description": "Cancel the context of this key and return to toplevel.",
+      "function": "keyGivenCancel"
+    }
+  }
+}
