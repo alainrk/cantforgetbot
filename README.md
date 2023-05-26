@@ -13,6 +13,9 @@ source venv/bin/activate
 
 # Install dependencies
 pip3 install -r requirements.txt
+
+# Freeze dependencies
+pip3 freeze > requirements.txt
 ```
 
 ### Run

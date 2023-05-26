@@ -26,7 +26,6 @@ class Database:
         # Write user json in the users firestore collection
         self.db = firestore.client()
 
-    #
     def add_user(self, username: str, id: int, firstname: str, lastname: str):
         self.db.collection("users").document(username).set({
             "username": username,
@@ -38,3 +37,8 @@ class Database:
 
     def get_user(self, username: str):
         return self.db.collection("users").document(username).get()
+
+    def update_user_context(self, username: str, context: dict):
+        self.db.collection("users").document(username).update({
+            "context": context
+        })

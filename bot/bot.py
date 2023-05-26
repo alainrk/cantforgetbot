@@ -61,10 +61,15 @@ class Bot:
         if not (await auth_guard(update, context)):
             return
 
-        user = self.db.get_user(update.effective_user.username)
-        if not user.exists:
-            self.db.add_user(update.effective_user.username, update.effective_user.id,
-                             update.effective_user.first_name, update.effective_user.last_name)
+        dbUser = self.db.get_user(update.effective_user.username)
+
+        if not dbUser.exists:
+            dbUser = self.db.add_user(update.effective_user.username, update.effective_user.id,
+                                      update.effective_user.first_name, update.effective_user.last_name)
+
+        user = dbUser.to_dict()
+        user["context"]["last_message"] = update.message.text
+        self.db.update_user_context(user["username"], user["context"])
 
         # XXX: Doing some tests
         # scheduled_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=10)
