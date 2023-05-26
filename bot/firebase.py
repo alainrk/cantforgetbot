@@ -5,6 +5,10 @@ from firebase_admin import credentials
 from firebase_admin import db
 from firebase_admin import firestore
 
+from models import User
+from dataclasses import asdict
+from dacite import from_dict
+
 load_dotenv()
 
 
@@ -34,11 +38,14 @@ class Database:
             "id": id,
             "context": {}
         })
+        user = self.get_user(username)
+        return user
 
-    def get_user(self, username: str):
-        return self.db.collection("users").document(username).get()
+    def get_user(self, username: str) -> User or None:
+        u = self.db.collection("users").document(username).get()
+        if not u.exists:
+            return None
+        return from_dict(User, u.to_dict())
 
-    def update_user_context(self, username: str, context: dict):
-        self.db.collection("users").document(username).update({
-            "context": context
-        })
+    def update_user(self, username: str, user: User):
+        self.db.collection("users").document(username).update(asdict(user))

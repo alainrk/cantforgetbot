@@ -5,6 +5,7 @@ certifi==2023.5.7
 cffi==1.15.1
 charset-normalizer==3.1.0
 cryptography==40.0.2
+dacite==1.8.1
 firebase-admin==6.1.0
 google-api-core==2.11.0
 google-api-python-client==2.86.0
