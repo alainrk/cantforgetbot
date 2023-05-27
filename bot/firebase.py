@@ -5,7 +5,7 @@ from firebase_admin import credentials
 from firebase_admin import db
 from firebase_admin import firestore
 
-from models import User
+from models import User, Context
 from dataclasses import asdict
 from dacite import from_dict
 
@@ -30,15 +30,15 @@ class Database:
         # Write user json in the users firestore collection
         self.db = firestore.client()
 
-    def add_user(self, username: str, id: int, firstname: str, lastname: str):
-        self.db.collection("users").document(username).set({
-            "username": username,
-            "firstname": firstname if firstname else "name-not-set",
-            "lastname": lastname if lastname else "",
-            "id": id,
-            "context": {}
+    def add_user(self, user: User):
+        self.db.collection("users").document(user.username).set({
+            "username": user.username,
+            "firstname": user.firstname if user.firstname else "name-not-set",
+            "lastname": user.lastname if user.lastname else "",
+            "id": user.id,
+            "context": asdict(user.context)
         })
-        user = self.get_user(username)
+        user = self.get_user(user.username)
         return user
 
     def get_user(self, username: str) -> User or None:

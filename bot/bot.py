@@ -6,7 +6,8 @@ import hashlib
 import datetime
 from dotenv import load_dotenv
 from firebase import Database
-from dacite import from_dict
+
+from models import User, Context
 
 import log
 logger = log.setup_logger("bot")
@@ -59,12 +60,22 @@ class Bot:
         if not (await self.__auth_guard(update, context)):
             return
 
+        # User retrieval
         user = self.db.get_user(update.effective_user.username)
         if not user:
-            user = self.db.add_user(update.effective_user.username, update.effective_user.id,
-                                    update.effective_user.first_name, update.effective_user.last_name)
+            user = self.db.add_user(
+                User(
+                    update.effective_user.id,
+                    update.effective_user.first_name,
+                    update.effective_user.last_name,
+                    update.effective_user.username,
+                    Context(last_message=None, last_step="toplevel")
+                )
+            )
 
+        # Save last message
         user.context.last_message = update.message.text
+
         self.db.update_user(user.username, user)
 
         # XXX: Doing some tests
