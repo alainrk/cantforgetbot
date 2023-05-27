@@ -3,9 +3,22 @@ from typing import Optional
 
 
 @dataclass
+class Message:
+    is_command: bool = False
+    text: str = ""
+
+
+@dataclass
+class Step:
+    top_level: bool = True
+    is_command: bool = False
+    code: str = ""
+
+
+@dataclass
 class Context:
-    last_message: Optional[str]
-    last_step: Optional[str]
+    last_message: Optional[Message] = None
+    last_step: Optional[Step] = None
 
 
 @dataclass

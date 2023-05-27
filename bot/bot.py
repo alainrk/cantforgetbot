@@ -7,7 +7,7 @@ import datetime
 from dotenv import load_dotenv
 from firebase import Database
 
-from models import User, Context
+from models import User, Context, Message, Step
 
 import log
 logger = log.setup_logger("bot")
@@ -29,6 +29,10 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
 load_dotenv()
 
 
+def is_command(text: str) -> bool:
+    return text.startswith("/") and len(text.split()) == 1
+
+
 class Bot:
     def __init__(self, token, db: Database):
         self.db = db
@@ -43,7 +47,7 @@ class Bot:
     def run(self):
         self.application.run_polling()
 
-    async def __auth_guard(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    async def __auth_guard(self, update: Update) -> bool:
         def is_user_allowed(user) -> bool:
             return user.username in os.getenv("USERS_ALLOWED").split(",")
 
@@ -53,11 +57,8 @@ class Bot:
             return False
         return True
 
-    async def is_command(text: str) -> bool:
-        return text.startswith("/") and len(text.split()) == 1
-
     async def __process_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        if not (await self.__auth_guard(update, context)):
+        if not (await self.__auth_guard(update)):
             return
 
         # User retrieval
@@ -69,18 +70,29 @@ class Bot:
                     update.effective_user.first_name,
                     update.effective_user.last_name,
                     update.effective_user.username,
-                    Context(last_message=None, last_step="toplevel")
+                    Context()
                 )
             )
 
-        # Save last message
-        user.context.last_message = update.message.text
+        # TODO: Move and place this stuff properly
 
-        self.db.update_user(user.username, user)
+        # Step execution
+        if is_command(update.message.text):
+            user.context.last_step = Step(
+                top_level=True, is_command=True, code=update.message.text[1:])
+            user.context.last_message = Message(
+                is_command=True, text=update.message.text)
+
+            if user.context.last_step.code == "debug":
+                await update.message.reply_text(f"{user}")
+                self.db.update_user(user.username, user)
+                return
+            if user.context.last_step.code == "start":
+                await update.message.reply_text(f"Welcome {user.firstname}!")
+                self.db.update_user(user.username, user)
+                return
 
         # XXX: Doing some tests
         # scheduled_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=10)
         # hash = hashlib.sha256(update.message.text.encode()).hexdigest()
         # msg = f"{hash[-5:]} {update.message.text} - {scheduled_time.strftime('%Y-%m-%d %H:%M:%S')}"
-
-        await update.message.reply_text(f"{user}")
