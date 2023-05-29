@@ -1,5 +1,5 @@
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
-from telegram import ForceReply, Update, Bot
+from telegram import ForceReply, Update, Bot, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
 from telegram import __version__ as TG_VER
 import os
 import hashlib
@@ -76,6 +76,8 @@ class Bot:
 
         # TODO: Move and place this stuff properly
 
+        print(update.message)
+
         # Step execution
         if is_command(update.message.text):
             # /debug command is executed before anything else and does not have side effects
@@ -99,11 +101,20 @@ class Bot:
             self.db.update_user(user.username, user)
             return
         else:
-            # Set last step and message
-            user.context.last_step = Step(
-                top_level=True, is_command=False, code="")
-            user.context.last_message = Message(
-                is_command=False, text=update.message.text)
+            previous_step = user.context.last_step
+            previous_message = user.context.last_message
+
+            # If user is in top level, then it's a new key to save
+            if previous_step.top_level:
+                key = update.message.text
+                reply_keyboard = [["Save"], ["Add Value"], ["Cancel"]]
+                reply_markup = ReplyKeyboardMarkup(
+                    reply_keyboard, one_time_keyboard=True)
+                await update.message.reply_text(f"Saving \"{key}\" in your repetitions...", reply_markup=reply_markup)
+
+                # TODO Set new step and message
+                self.db.update_user(user.username, user)
+                return
 
             await update.message.reply_text(f"Echo: {update.message.text}")
             self.db.update_user(user.username, user)
