@@ -78,19 +78,36 @@ class Bot:
 
         # Step execution
         if is_command(update.message.text):
+            # /debug command is executed before anything else and does not have side effects
+            if update.message.text == "/debug":
+                await update.message.reply_text(f"{user}")
+                return
+
+            # Set last step and message
             user.context.last_step = Step(
                 top_level=True, is_command=True, code=update.message.text[1:])
             user.context.last_message = Message(
                 is_command=True, text=update.message.text)
 
-            if user.context.last_step.code == "debug":
-                await update.message.reply_text(f"{user}")
-                self.db.update_user(user.username, user)
-                return
+            # /start command
             if user.context.last_step.code == "start":
                 await update.message.reply_text(f"Welcome {user.firstname}!")
                 self.db.update_user(user.username, user)
                 return
+            # Any other command
+            await update.message.reply_text(f"Unknown command")
+            self.db.update_user(user.username, user)
+            return
+        else:
+            # Set last step and message
+            user.context.last_step = Step(
+                top_level=True, is_command=False, code="")
+            user.context.last_message = Message(
+                is_command=False, text=update.message.text)
+
+            await update.message.reply_text(f"Echo: {update.message.text}")
+            self.db.update_user(user.username, user)
+            return
 
         # XXX: Doing some tests
         # scheduled_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=10)
