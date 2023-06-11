@@ -7,6 +7,8 @@ from models import User
 from dataclasses import asdict
 from dacite import from_dict
 
+from datetime import datetime, timedelta
+
 load_dotenv()
 
 
@@ -71,7 +73,19 @@ class Database:
             keys = {}
         else:
             keys = keys.to_dict()
+        now = datetime.now()
         keys[key] = {
-            "value": value
+            "value": value,
+            "created_at": now,
+            "updated_at": now,
+            "reminders": 0,
+            "reminders_failed": 0,
+            "reminders_succeded": 0,
+            "next_reminder": now + timedelta(seconds=15)
         }
+        # TODO: Create reminder collection
+        # Each reminder will have a document with all the references to user and key.
+        # There will be a routine to get the expired reminders and send them to the user.
+        # The reminder will be deleted after it is sent to the user.
+        # The key will be updated with the next reminder date and the next reminder date will be set in its collection.
         self.db.collection("keys").document(username).set(keys)
