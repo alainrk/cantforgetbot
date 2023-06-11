@@ -104,17 +104,40 @@ class Bot:
             previous_step = user.context.last_step
             previous_message = user.context.last_message
 
+            ############################
+            # New key to save
+            ############################
+
             # If user is in top level, then it's a new key to save
             if previous_step.top_level:
                 key = update.message.text
                 reply_keyboard = [["Save"], ["Add Value"], ["Cancel"]]
                 reply_markup = ReplyKeyboardMarkup(
                     reply_keyboard, one_time_keyboard=True)
+
                 await update.message.reply_text(f"Saving \"{key}\" in your repetitions...", reply_markup=reply_markup)
 
-                # TODO Set new step and message
+                user.context.last_step = Step(
+                    top_level=False, is_command=False, code="key-given")
+
+                user.context.last_message = Message(
+                    is_command=False, text=update.message.text)
+
                 self.db.update_user(user.username, user)
+
                 return
+
+            ############################
+            # Button: Save
+            ############################
+
+            ############################
+            # Button: Add Value
+            ############################
+
+            ############################
+            # Button: Cancel
+            ############################
 
             await update.message.reply_text(f"Echo: {update.message.text}")
             self.db.update_user(user.username, user)
