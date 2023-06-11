@@ -105,3 +105,9 @@ class Database:
             "value": value,
             "next_reminder": next_reminder_time
         })
+
+    def get_expired_key(self):
+        now = datetime.now()
+        expired_keys = self.db.collection("reminders").where(
+            "next_reminder", "<=", now).get()
+        return expired_keys

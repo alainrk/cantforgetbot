@@ -7,4 +7,4 @@ dev:
 	nodemon --exec "python3" bot/main.py
 
 run:
-	python3 bot/main.py
+	python3 bot/main.py --bot-server
