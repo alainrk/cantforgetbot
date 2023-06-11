@@ -93,11 +93,11 @@ class Bot:
 
             # /start command
             if user.context.last_step.code == "start":
-                await update.message.reply_text(f"Welcome {user.firstname}!")
+                await update.message.reply_text(f"Welcome {user.firstname}!", reply_markup=ReplyKeyboardRemove())
                 self.db.update_user(user.username, user)
                 return
             # Any other command
-            await update.message.reply_text(f"Unknown command")
+            await update.message.reply_text(f"Unknown command", reply_markup=ReplyKeyboardRemove())
             self.db.update_user(user.username, user)
             return
         else:
@@ -141,10 +141,10 @@ class Bot:
                 if current_message_text.lower() == "save":
                     # TODO: Check if key already exists
                     if self.db.check_key_exists(previous_message.text):
-                        await update.message.reply_text(f"Key already exists")
+                        await update.message.reply_text(f"Key already exists", reply_markup=ReplyKeyboardRemove())
                     else:
                         self.db.add_key(previous_message.text)
-                        await update.message.reply_text(f"Your key has been saved")
+                        await update.message.reply_text(f"Your key has been saved", reply_markup=ReplyKeyboardRemove())
 
                     user.context.last_step = Step(
                         top_level=True, is_command=False, code="followup-key-given-save")
