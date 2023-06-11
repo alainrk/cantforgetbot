@@ -187,7 +187,33 @@ class Bot:
 
                     return
 
-            await update.message.reply_text(f"Echo: {current_message_text}")
+            ############################
+            # Step: key-given
+            ############################
+            if previous_step.code == "followup-key-given-add-value":
+                # TODO: Maybe here I want to just update it
+                if self.db.check_key_exists(user.username, previous_message.text):
+                    await update.message.reply_text(f"Key already exists", reply_markup=ReplyKeyboardRemove())
+                else:
+                    self.db.add_key(
+                        user.username, previous_message.text, current_message_text)
+                    await update.message.reply_text(f"Your key-value pair has been saved", reply_markup=ReplyKeyboardRemove())
+
+                user.context.last_step = Step(
+                    top_level=True, is_command=False, code="toplevel")
+
+                user.context.last_message = Message(
+                    is_command=False, text=current_message_text)
+
+                self.db.update_user(user.username, user)
+
+                return
+
+            # Yep, it's ugly but for now it is what it is
+            if user.username == os.getenv("USER_ADMIN"):
+                await update.message.reply_text(f"Step not handled. -- User: {user} -- Previous Step: {previous_step}")
+            else:
+                await update.message.reply_text("Sorry, step not handled. Contact your admin.")
             self.db.update_user(user.username, user)
             return
 
