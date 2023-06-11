@@ -139,7 +139,6 @@ class Bot:
                 # Button: Save
                 ############################
                 if current_message_text.lower() == "save":
-                    # TODO: Check if key already exists
                     if self.db.check_key_exists(user.username, previous_message.text):
                         await update.message.reply_text(f"Key already exists", reply_markup=ReplyKeyboardRemove())
                     else:
@@ -160,13 +159,35 @@ class Bot:
                 # Button: Add Value
                 ############################
                 if current_message_text.lower() == "add value":
-                    pass
+                    self.db.add_key(user.username, previous_message.text)
+                    await update.message.reply_text(f"Not implemented yet, sorry!", reply_markup=ReplyKeyboardRemove())
+
+                    # TODO: Not top leve, it needs to ask for the value
+                    user.context.last_step = Step(
+                        top_level=True, is_command=False, code="followup-key-given-add-value")
+
+                    user.context.last_message = Message(
+                        is_command=False, text=current_message_text)
+
+                    self.db.update_user(user.username, user)
+
+                    return
 
                 ############################
                 # Button: Cancel
                 ############################
                 if current_message_text.lower() == "cancel":
-                    pass
+                    await update.message.reply_text(f"That's fine! Just type your key if you want to add more.", reply_markup=ReplyKeyboardRemove())
+
+                    user.context.last_step = Step(
+                        top_level=True, is_command=False, code="followup-key-given-cancel")
+
+                    user.context.last_message = Message(
+                        is_command=False, text=current_message_text)
+
+                    self.db.update_user(user.username, user)
+
+                    return
 
             await update.message.reply_text(f"Echo: {current_message_text}")
             self.db.update_user(user.username, user)
