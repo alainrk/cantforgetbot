@@ -162,6 +162,8 @@ class Bot:
                     self.db.add_key(user.username, previous_message.text)
                     await update.message.reply_text(f"Not implemented yet, sorry!", reply_markup=ReplyKeyboardRemove())
 
+                    # TODO: Tell the user to format the value as a "spoiler" formatting
+
                     # TODO: Not top leve, it needs to ask for the value
                     user.context.last_step = Step(
                         top_level=True, is_command=False, code="followup-key-given-add-value")
