@@ -20,7 +20,7 @@
         "value": "Hello [[firstname]]! [[help-message]]"
       }
     },
-    "toplevel-key-given": {
+    "key-given": {
       "description": "User sent a key (word, sentence, whatever) to start the flow.",
       "type": "toplevel",
       "output": {

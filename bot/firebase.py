@@ -49,3 +49,11 @@ class Database:
 
     def update_user(self, username: str, user: User):
         self.db.collection("users").document(username).update(asdict(user))
+
+    def check_key_exists(self, key: str):
+        return self.db.collection("keys").document(key).get().exists
+
+    def add_key(self, key: str, value: str = ""):
+        self.db.collection("keys").document(key).set({
+            "value": value
+        })

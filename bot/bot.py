@@ -101,6 +101,9 @@ class Bot:
             self.db.update_user(user.username, user)
             return
         else:
+            # Save some common useful stuff
+            current_message_text = update.message.text
+
             previous_step = user.context.last_step
             previous_message = user.context.last_message
 
@@ -110,40 +113,66 @@ class Bot:
 
             # If user is in top level, then it's a new key to save
             if previous_step.top_level:
-                key = update.message.text
+                key = current_message_text
                 reply_keyboard = [["Save"], ["Add Value"], ["Cancel"]]
                 reply_markup = ReplyKeyboardMarkup(
                     reply_keyboard, one_time_keyboard=True)
 
-                await update.message.reply_text(f"Saving \"{key}\" in your repetitions...", reply_markup=reply_markup)
+                await update.message.reply_text(f"What do you want to do with \"{key}\"?", reply_markup=reply_markup)
 
                 user.context.last_step = Step(
                     top_level=False, is_command=False, code="key-given")
 
                 user.context.last_message = Message(
-                    is_command=False, text=update.message.text)
+                    is_command=False, text=current_message_text)
 
                 self.db.update_user(user.username, user)
 
                 return
 
             ############################
-            # Button: Save
+            # Step: key-given
             ############################
+            if previous_step.code == "key-given":
 
-            ############################
-            # Button: Add Value
-            ############################
+                ############################
+                # Button: Save
+                ############################
+                if current_message_text.lower() == "save":
+                    # TODO: Check if key already exists
+                    if self.db.check_key_exists(previous_message.text):
+                        await update.message.reply_text(f"Key already exists")
+                    else:
+                        self.db.add_key(previous_message.text)
+                        await update.message.reply_text(f"Your key has been saved")
 
-            ############################
-            # Button: Cancel
-            ############################
+                    user.context.last_step = Step(
+                        top_level=True, is_command=False, code="followup-key-given-save")
 
-            await update.message.reply_text(f"Echo: {update.message.text}")
+                    user.context.last_message = Message(
+                        is_command=False, text=current_message_text)
+
+                    self.db.update_user(user.username, user)
+
+                    return
+
+                ############################
+                # Button: Add Value
+                ############################
+                if current_message_text.lower() == "add value":
+                    pass
+
+                ############################
+                # Button: Cancel
+                ############################
+                if current_message_text.lower() == "cancel":
+                    pass
+
+            await update.message.reply_text(f"Echo: {current_message_text}")
             self.db.update_user(user.username, user)
             return
 
         # XXX: Doing some tests
         # scheduled_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=10)
-        # hash = hashlib.sha256(update.message.text.encode()).hexdigest()
-        # msg = f"{hash[-5:]} {update.message.text} - {scheduled_time.strftime('%Y-%m-%d %H:%M:%S')}"
+        # hash = hashlib.sha256(current_message_text.encode()).hexdigest()
+        # msg = f"{hash[-5:]} {current_message_text} - {scheduled_time.strftime('%Y-%m-%d %H:%M:%S')}"
