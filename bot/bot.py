@@ -191,12 +191,13 @@ class Bot:
             # Step: key-given
             ############################
             if previous_step.code == "followup-key-given-add-value":
+                key = previous_step.data["key"]
                 # TODO: Maybe here I want to just update it
-                if self.db.check_key_exists(user.username, previous_message.text):
+                if self.db.check_key_exists(user.username, key):
                     await update.message.reply_text(f"Key already exists", reply_markup=ReplyKeyboardRemove())
                 else:
                     self.db.add_key(
-                        user.username, previous_message.text, current_message_text)
+                        user.username, key, current_message_text)
                     await update.message.reply_text(f"Your key-value pair has been saved", reply_markup=ReplyKeyboardRemove())
 
                 user.context.last_step = Step(
