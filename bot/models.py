@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 
@@ -13,6 +13,7 @@ class Step:
     top_level: bool = True
     is_command: bool = False
     code: str = ""
+    # data: dict = field(default_factory=dict)
 
 
 @dataclass

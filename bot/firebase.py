@@ -1,11 +1,9 @@
 from dotenv import load_dotenv
-import os
 import firebase_admin
 from firebase_admin import credentials
-from firebase_admin import db
 from firebase_admin import firestore
 
-from models import User, Context
+from models import User
 from dataclasses import asdict
 from dacite import from_dict
 

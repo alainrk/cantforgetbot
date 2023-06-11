@@ -159,14 +159,10 @@ class Bot:
                 # Button: Add Value
                 ############################
                 if current_message_text.lower() == "add value":
-                    self.db.add_key(user.username, previous_message.text)
-                    await update.message.reply_text(f"Not implemented yet, sorry!", reply_markup=ReplyKeyboardRemove())
+                    await update.message.reply_text(f"Insert your value. Use the \"spoiler\" function to avoid seeing it later on (Select -> Format -> Spoiler).", reply_markup=ReplyKeyboardRemove())
 
-                    # TODO: Tell the user to format the value as a "spoiler" formatting
-
-                    # TODO: Not top leve, it needs to ask for the value
                     user.context.last_step = Step(
-                        top_level=True, is_command=False, code="followup-key-given-add-value")
+                        top_level=False, is_command=False, code="followup-key-given-add-value", data={"key": previous_message.text})
 
                     user.context.last_message = Message(
                         is_command=False, text=current_message_text)
