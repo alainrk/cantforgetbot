@@ -140,10 +140,10 @@ class Bot:
                 ############################
                 if current_message_text.lower() == "save":
                     # TODO: Check if key already exists
-                    if self.db.check_key_exists(previous_message.text):
+                    if self.db.check_key_exists(user.username, previous_message.text):
                         await update.message.reply_text(f"Key already exists", reply_markup=ReplyKeyboardRemove())
                     else:
-                        self.db.add_key(previous_message.text)
+                        self.db.add_key(user.username, previous_message.text)
                         await update.message.reply_text(f"Your key has been saved", reply_markup=ReplyKeyboardRemove())
 
                     user.context.last_step = Step(

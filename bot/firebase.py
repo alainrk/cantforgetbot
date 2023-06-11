@@ -30,6 +30,9 @@ class Database:
         # Write user json in the users firestore collection
         self.db = firestore.client()
 
+    ############################
+    # Users
+    ############################
     def add_user(self, user: User):
         self.db.collection("users").document(user.username).set({
             "username": user.username,
@@ -50,10 +53,27 @@ class Database:
     def update_user(self, username: str, user: User):
         self.db.collection("users").document(username).update(asdict(user))
 
-    def check_key_exists(self, key: str):
-        return self.db.collection("keys").document(key).get().exists
+    ############################
+    # Keys
+    ############################
+    def check_key_exists(self, username: str, key: str):
+        keys = self.db.collection("keys").document(username).get()
+        # No keys saved for this user yet
+        if not keys.exists:
+            return False
+        if key in keys.to_dict():
+            return True
+        return False
+        # return self.db.collection("keys").document(username).get().exists
 
-    def add_key(self, key: str, value: str = ""):
-        self.db.collection("keys").document(key).set({
+    def add_key(self, username: str, key: str, value: str = ""):
+        keys = self.db.collection("keys").document(username).get()
+        # No keys saved for this user yet
+        if not keys.exists:
+            keys = {}
+        else:
+            keys = keys.to_dict()
+        keys[key] = {
             "value": value
-        })
+        }
+        self.db.collection("keys").document(username).set(keys)
