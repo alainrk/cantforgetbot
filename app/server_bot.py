@@ -1,9 +1,7 @@
-from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
-from telegram import ForceReply, Update, Bot, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
+from telegram.ext import Application, ContextTypes, MessageHandler, filters
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram import __version__ as TG_VER
 import os
-import hashlib
-import datetime
 from dotenv import load_dotenv
 from firebase import Database
 
@@ -33,7 +31,7 @@ def is_command(text: str) -> bool:
     return text.startswith("/") and len(text.split()) == 1
 
 
-class Bot:
+class BotServer:
     def __init__(self, token, db: Database):
         self.db = db
         self.application = Application.builder().token(token).build()
@@ -217,8 +215,3 @@ class Bot:
                 await update.message.reply_text("Sorry, step not handled. Contact your admin.")
             self.db.update_user(user.username, user)
             return
-
-        # XXX: Doing some tests
-        # scheduled_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=10)
-        # hash = hashlib.sha256(current_message_text.encode()).hexdigest()
-        # msg = f"{hash[-5:]} {current_message_text} - {scheduled_time.strftime('%Y-%m-%d %H:%M:%S')}"

@@ -1,5 +1,5 @@
 import log
-from bot import Bot
+from server_bot import BotServer
 import os
 from dotenv import load_dotenv
 import argparse
@@ -26,7 +26,7 @@ def main() -> None:
 
     # TODO: Setup config object
 
-    bot = Bot(token, db)
+    bot = BotServer(token, db)
     bot.run()
 
 
