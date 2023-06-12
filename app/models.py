@@ -42,3 +42,11 @@ class Key:
     reminders_failed: int
     reminders_succeded: int
     next_reminder: datetime.datetime
+
+
+@dataclass
+class Reminder:
+    key: str
+    value: str
+    expire: datetime.datetime
+    username: str

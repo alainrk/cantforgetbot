@@ -3,7 +3,7 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
-from models import User
+from models import User, Key, Reminder
 from dataclasses import asdict
 from dacite import from_dict
 
@@ -105,11 +105,11 @@ class Database:
             "username": username,
             "key": key,
             "value": value,
-            "next_reminder": next_reminder_time
+            "expire": next_reminder_time
         })
 
-    def get_expired_keys(self):
+    def get_expired_reminders(self):
         now = datetime.now()
-        expired_keys = self.db.collection("reminders").where(
-            "next_reminder", "<=", now).get()
-        return expired_keys
+        expired_rems = self.db.collection("reminders").where(
+            "expire", "<=", now).get()
+        return map(lambda k: from_dict(Reminder, k), expired_rems)

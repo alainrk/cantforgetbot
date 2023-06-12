@@ -33,6 +33,6 @@ class RemindersServer:
         self.application = Application.builder().token(token).build()
 
     def run(self):
-        keys = self.db.get_expired_keys()
-        for key in keys:
-            print(key)
+        rems = self.db.get_expired_reminders()
+        for r in rems:
+            print(r)
