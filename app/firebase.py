@@ -78,7 +78,9 @@ class Database:
         now = datetime.now()
         next_reminder_time = now + timedelta(seconds=60)
 
+        # TODO: This stuff has to be moved outside and passed here as model Key
         keys[key] = {
+            "key": key,
             "value": value,
             "created_at": now,
             "updated_at": now,
@@ -106,7 +108,7 @@ class Database:
             "next_reminder": next_reminder_time
         })
 
-    def get_expired_key(self):
+    def get_expired_keys(self):
         now = datetime.now()
         expired_keys = self.db.collection("reminders").where(
             "next_reminder", "<=", now).get()

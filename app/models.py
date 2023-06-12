@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Optional
+import datetime
 
 
 @dataclass
@@ -29,3 +30,15 @@ class User:
     lastname: Optional[str]
     username: str
     context: Context
+
+
+@dataclass
+class Key:
+    key: str
+    value: str
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    reminders: int
+    reminders_failed: int
+    reminders_succeded: int
+    next_reminder: datetime.datetime

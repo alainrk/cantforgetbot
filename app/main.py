@@ -1,5 +1,6 @@
 import log
 from server_bot import BotServer
+from server_reminders import RemindersServer
 import os
 from dotenv import load_dotenv
 import argparse
@@ -11,10 +12,11 @@ firebaseProjectKeyFilename = "firebase-service-account-key.json"
 load_dotenv()
 
 logger = log.setup_logger(__name__)
-logger.info("Starting bot")
 
 
-def main() -> None:
+def run_bot_server() -> None:
+    logger.info("Starting bot server...")
+
     # Get envs and config
     token = os.getenv("TOKEN")
 
@@ -26,8 +28,26 @@ def main() -> None:
 
     # TODO: Setup config object
 
-    bot = BotServer(token, db)
-    bot.run()
+    app = BotServer(token, db)
+    app.run()
+
+
+def run_reminders_server() -> None:
+    logger.info("Starting reminders server...")
+
+    # Get envs and config
+    token = os.getenv("TOKEN")
+
+    # Setup firebase
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    key_file_path = os.path.join(
+        script_dir, "..", "data", firebaseProjectKeyFilename)
+    db = Database(DatabaseConfig(key_file_path))
+
+    # TODO: Setup config object
+
+    app = RemindersServer(token, db)
+    app.run()
 
 
 if __name__ == "__main__":
@@ -39,8 +59,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     if args.bot_server:
-        main()
+        run_bot_server()
     elif args.reminders_server:
-        print("Still not implemented")
+        run_reminders_server()
     else:
         print("Please specify a server to run")
