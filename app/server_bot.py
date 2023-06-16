@@ -59,6 +59,9 @@ class BotServer:
         if not (await self.__auth_guard(update)):
             return
 
+        print(context.chat_data)
+        print(context._chat_id)
+
         # User retrieval
         user = self.db.get_user(update.effective_user.username)
         if not user:
@@ -140,7 +143,7 @@ class BotServer:
                     if self.db.check_key_exists(user.username, previous_message.text):
                         await update.message.reply_text(f"Key already exists", reply_markup=ReplyKeyboardRemove())
                     else:
-                        self.db.add_key(user.username, previous_message.text)
+                        self.db.add_key(user, previous_message.text)
                         await update.message.reply_text(f"Your key has been saved", reply_markup=ReplyKeyboardRemove())
 
                     user.context.last_step = Step(
@@ -195,7 +198,7 @@ class BotServer:
                     await update.message.reply_text(f"Key already exists", reply_markup=ReplyKeyboardRemove())
                 else:
                     self.db.add_key(
-                        user.username, key, current_message_text)
+                        user, key, current_message_text)
                     await update.message.reply_text(f"Your key-value pair has been saved", reply_markup=ReplyKeyboardRemove())
 
                 user.context.last_step = Step(

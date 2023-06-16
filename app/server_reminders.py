@@ -35,4 +35,9 @@ class RemindersServer:
     def run(self):
         rems = self.db.get_expired_reminders()
         for r in rems:
-            print(r)
+            print(f"Send {r}")
+            # Send message to this user in this chat
+            self.application.bot.send_message(
+                chat_id=r.chat_id,
+                text=f"Reminder: {r.key} {r.value}"
+            )

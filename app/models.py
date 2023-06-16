@@ -46,7 +46,9 @@ class Key:
 
 @dataclass
 class Reminder:
+    id: str
     key: str
     value: str
     expire: datetime.datetime
     username: str
+    chat_id: int

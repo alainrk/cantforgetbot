@@ -67,8 +67,8 @@ class Database:
         return False
         # return self.db.collection("keys").document(username).get().exists
 
-    def add_key(self, username: str, key: str, value: str = ""):
-        keys = self.db.collection("keys").document(username).get()
+    def add_key(self, user: User, key: str, value: str = ""):
+        keys = self.db.collection("keys").document(user.username).get()
         # No keys saved for this user yet
         if not keys.exists:
             keys = {}
@@ -96,13 +96,15 @@ class Database:
         # The reminder will be deleted after it is sent to the user.
         # The key will be updated with the next reminder date and the next reminder date will be set in its collection.
 
-        self.db.collection("keys").document(username).set(keys)
+        self.db.collection("keys").document(user.username).set(keys)
 
         hash = hashlib.sha256(key.encode()).hexdigest()
-        reminder_key = f"{username}-{hash}"
+        reminder_id = f"{user.username}-{hash}"
 
-        self.db.collection("reminders").document(reminder_key).set({
-            "username": username,
+        self.db.collection("reminders").document(reminder_id).set({
+            "id": reminder_id,
+            "chat_id": user.id,
+            "username": user.username,
             "key": key,
             "value": value,
             "expire": next_reminder_time
@@ -112,4 +114,4 @@ class Database:
         now = datetime.now()
         expired_rems = self.db.collection("reminders").where(
             "expire", "<=", now).get()
-        return map(lambda k: from_dict(Reminder, k), expired_rems)
+        return list(map(lambda k: from_dict(Reminder, k.to_dict()), expired_rems))
