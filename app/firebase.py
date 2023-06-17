@@ -1,14 +1,12 @@
-from dotenv import load_dotenv
-import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import firestore
-
-from models import User, Key, Reminder
-from dataclasses import asdict
-from dacite import from_dict
-
-from datetime import datetime, timedelta
 import hashlib
+from dataclasses import asdict
+from datetime import datetime, timedelta
+
+import firebase_admin
+from dacite import from_dict
+from dotenv import load_dotenv
+from firebase_admin import credentials, firestore
+from models import Key, Reminder, User
 
 load_dotenv()
 

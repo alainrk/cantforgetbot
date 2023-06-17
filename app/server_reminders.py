@@ -1,13 +1,13 @@
-from telegram.ext import Application, ContextTypes, MessageHandler, filters
-from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
-from telegram import __version__ as TG_VER
 import os
-from dotenv import load_dotenv
-from firebase import Database
-
-from models import User, Context, Message, Step
 
 import log
+from dotenv import load_dotenv
+from firebase import Database
+from models import Context, Message, Step, User
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram import __version__ as TG_VER
+from telegram.ext import Application, ContextTypes, MessageHandler, filters
+
 logger = log.setup_logger("reminders")
 
 
@@ -32,12 +32,14 @@ class RemindersServer:
         self.db = db
         self.application = Application.builder().token(token).build()
 
-    def run(self):
+    async def run(self):
         rems = self.db.get_expired_reminders()
+        print(f"{len(rems) = }")
         for r in rems:
             print(f"Send {r}")
             # Send message to this user in this chat
-            self.application.bot.send_message(
+            x = await self.application.bot.send_message(
                 chat_id=r.chat_id,
                 text=f"Reminder: {r.key} {r.value}"
             )
+            print(x)

@@ -1,11 +1,11 @@
+import argparse
+import os
+
 import log
+from dotenv import load_dotenv
+from firebase import Database, DatabaseConfig
 from server_bot import BotServer
 from server_reminders import RemindersServer
-import os
-from dotenv import load_dotenv
-import argparse
-
-from firebase import DatabaseConfig, Database
 
 firebaseProjectKeyFilename = "firebase-service-account-key.json"
 
