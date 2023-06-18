@@ -1,13 +1,13 @@
+from telegram.ext import Application, ContextTypes, MessageHandler, filters
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import __version__ as TG_VER
 import os
-
-import log
 from dotenv import load_dotenv
 from firebase import Database
-from models import Context, Message, Step, User
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
-from telegram import __version__ as TG_VER
-from telegram.ext import Application, ContextTypes, MessageHandler, filters
 
+from models import User, Context, Message, Step
+
+import log
 logger = log.setup_logger("bot")
 
 

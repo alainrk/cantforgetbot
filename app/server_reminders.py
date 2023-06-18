@@ -34,12 +34,14 @@ class RemindersServer:
 
     async def run(self):
         rems = self.db.get_expired_reminders()
-        print(f"{len(rems) = }")
+
         for r in rems:
-            print(f"Send {r}")
-            # Send message to this user in this chat
-            x = await self.application.bot.send_message(
+            text = f"📌 *Reminder* 📌\n\- {r.key}"
+            if r.value:
+                text += f"\n\- ||{r.value}||"
+            ret = await self.application.bot.send_message(
                 chat_id=r.chat_id,
-                text=f"Reminder: {r.key} {r.value}"
+                text=text,
+                parse_mode="MarkdownV2"
             )
-            print(x)
+            print(ret)

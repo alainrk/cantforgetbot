@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from firebase import Database, DatabaseConfig
 from server_bot import BotServer
 from server_reminders import RemindersServer
+import asyncio
 
 firebaseProjectKeyFilename = "firebase-service-account-key.json"
 
@@ -47,7 +48,7 @@ def run_reminders_server() -> None:
     # TODO: Setup config object
 
     app = RemindersServer(token, db)
-    app.run()
+    asyncio.run(app.run())
 
 
 if __name__ == "__main__":
