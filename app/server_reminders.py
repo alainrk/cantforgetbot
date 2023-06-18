@@ -1,12 +1,10 @@
-import os
-
 import log
 from dotenv import load_dotenv
 from firebase import Database
-from models import Context, Message, Step, User
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from models import Reminder
 from telegram import __version__ as TG_VER
-from telegram.ext import Application, ContextTypes, MessageHandler, filters
+from telegram.ext import Application
+import asyncio
 
 logger = log.setup_logger("reminders")
 
@@ -32,16 +30,24 @@ class RemindersServer:
         self.db = db
         self.application = Application.builder().token(token).build()
 
+    # Send reminder to user, delete reminder from db and update the key
+    async def expired_reminder_handler(self, r: Reminder):
+        text = f"📌 *Reminder* 📌\n\- {r.key}"
+        if r.value:
+            text += f"\n\- ||{r.value}||"
+        return await self.application.bot.send_message(
+            chat_id=r.chat_id,
+            text=text,
+            parse_mode="MarkdownV2"
+        )
+
     async def run(self):
         rems = self.db.get_expired_reminders()
 
+        rets = []
         for r in rems:
-            text = f"📌 *Reminder* 📌\n\- {r.key}"
-            if r.value:
-                text += f"\n\- ||{r.value}||"
-            ret = await self.application.bot.send_message(
-                chat_id=r.chat_id,
-                text=text,
-                parse_mode="MarkdownV2"
-            )
-            print(ret)
+            # Run expired_reminder_handler in a separate thread in parallel
+            rets.append(asyncio.create_task(self.expired_reminder_handler(r)))
+
+        # await all tasks to finish
+        await asyncio.gather(*rets)
