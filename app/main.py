@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import os
 
 import log
@@ -6,7 +7,6 @@ from dotenv import load_dotenv
 from firebase import Database, DatabaseConfig
 from server_bot import BotServer
 from server_reminders import RemindersServer
-import asyncio
 
 firebaseProjectKeyFilename = "firebase-service-account-key.json"
 

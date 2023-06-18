@@ -32,6 +32,7 @@ class Database:
     ############################
     # Users
     ############################
+    # TODO: async handling
     def add_user(self, user: User):
         self.db.collection("users").document(user.username).set({
             "username": user.username,
@@ -55,6 +56,7 @@ class Database:
     ############################
     # Keys
     ############################
+    # TODO: async handling
     def check_key_exists(self, username: str, key: str):
         keys = self.db.collection("keys").document(username).get()
         # No keys saved for this user yet
@@ -65,6 +67,7 @@ class Database:
         return False
         # return self.db.collection("keys").document(username).get().exists
 
+    # TODO: async handling
     def add_key(self, user: User, key: str, value: str = ""):
         keys = self.db.collection("keys").document(user.username).get()
         # No keys saved for this user yet
@@ -108,8 +111,13 @@ class Database:
             "expire": next_reminder_time
         })
 
+    # TODO: async handling
     def get_expired_reminders(self):
         now = datetime.now()
         expired_rems = self.db.collection("reminders").where(
             "expire", "<=", now).get()
         return list(map(lambda k: from_dict(Reminder, k.to_dict()), expired_rems))
+
+    # TODO: async handling
+    def delete_reminder(self, id):
+        self.db.collection("reminders").document(id).delete()

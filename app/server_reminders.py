@@ -1,10 +1,14 @@
+import asyncio
+import time
+
 import log
 from dotenv import load_dotenv
 from firebase import Database
 from models import Reminder
 from telegram import __version__ as TG_VER
 from telegram.ext import Application
-import asyncio
+
+CYCLE_SLEEP_TIME_SEC = 30
 
 logger = log.setup_logger("reminders")
 
@@ -35,19 +39,46 @@ class RemindersServer:
         text = f"📌 *Reminder* 📌\n\- {r.key}"
         if r.value:
             text += f"\n\- ||{r.value}||"
-        return await self.application.bot.send_message(
-            chat_id=r.chat_id,
-            text=text,
-            parse_mode="MarkdownV2"
-        )
+
+        res = None
+        try:
+            res = await self.application.bot.send_message(
+                chat_id=r.chat_id,
+                text=text,
+                parse_mode="MarkdownV2"
+            )
+        except Exception as e:
+            logger.error(f"Failed to send reminder {r}: {e}")
+            return
+
+        # Delete reminder from db
+        self.db.delete_reminder(r.id)
+
+        # # Update key expiration
+        # self.db.update_key_expiration(r.username, r.key)
+
+        # # Create new reminder
+        # self.db.create_reminder(r.username, r.key, r.value, r.chat_id, r.expiration)
+
+        return res
 
     async def run(self):
-        rems = self.db.get_expired_reminders()
+        while True:
+            rems = self.db.get_expired_reminders()
 
-        rets = []
-        for r in rems:
-            # Run expired_reminder_handler in a separate thread in parallel
-            rets.append(asyncio.create_task(self.expired_reminder_handler(r)))
+            if not rems:
+                logger.debug("No expired reminders")
+                time.sleep(CYCLE_SLEEP_TIME_SEC)
+                continue
 
-        # await all tasks to finish
-        await asyncio.gather(*rets)
+            rets = []
+            for r in rems:
+                # Run expired_reminder_handler in a separate thread in parallel
+                rets.append(asyncio.create_task(self.expired_reminder_handler(r)))
+
+            # await all tasks to finish
+            await asyncio.gather(*rets)
+            logger.debug(list(map(lambda x: x.result(), rets)))
+
+            # Stupid system but for now it works
+            time.sleep(CYCLE_SLEEP_TIME_SEC)
