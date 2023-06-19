@@ -1,12 +1,12 @@
 import hashlib
 from dataclasses import asdict
-from datetime import datetime, timedelta
 
 import firebase_admin
 from dacite import from_dict
 from dotenv import load_dotenv
 from firebase_admin import credentials, firestore
 from models import Key, Reminder, User
+import datetime
 
 load_dotenv()
 
@@ -68,6 +68,16 @@ class Database:
         # return self.db.collection("keys").document(username).get().exists
 
     # TODO: async handling
+    def get_key(self, username: str, key: str) -> Key or None:
+        keys = self.db.collection("keys").document(username).get()
+        # No keys saved for this user yet
+        if not keys.exists:
+            return None
+        if key in keys.to_dict():
+            return from_dict(Key, keys.to_dict()[key])
+        return None
+
+    # TODO: async handling
     def add_key(self, user: User, key: str, value: str = ""):
         keys = self.db.collection("keys").document(user.username).get()
         # No keys saved for this user yet
@@ -76,8 +86,8 @@ class Database:
         else:
             keys = keys.to_dict()
 
-        now = datetime.now()
-        next_reminder_time = now + timedelta(seconds=60)
+        now = datetime.datetime.now()
+        next_reminder_time = now + datetime.timedelta(seconds=60)
 
         # TODO: This stuff has to be moved outside and passed here as model Key
         keys[key] = {
@@ -91,29 +101,28 @@ class Database:
             "next_reminder": next_reminder_time
         }
 
-        # TODO: Create reminder collection
-        # Each reminder will have a document with all the references to user and key.
-        # There will be a routine to get the expired reminders and send them to the user.
-        # The reminder will be deleted after it is sent to the user.
-        # The key will be updated with the next reminder date and the next reminder date will be set in its collection.
-
+        # TODO: transaction management
         self.db.collection("keys").document(user.username).set(keys)
+        self.create_reminder(key, user.id, user.username, next_reminder_time, value)
 
+    # TODO: async handling
+    # TODO: these params should not be here, a Reminder must be passed instead
+    def create_reminder(self, key: str, chat_id: int, username: str, expire: datetime.datetime, value: str = ""):
         hash = hashlib.sha256(key.encode()).hexdigest()
-        reminder_id = f"{user.username}-{hash}"
+        reminder_id = f"{username}-{hash}"
 
         self.db.collection("reminders").document(reminder_id).set({
             "id": reminder_id,
-            "chat_id": user.id,
-            "username": user.username,
+            "chat_id": chat_id,
+            "username": username,
             "key": key,
             "value": value,
-            "expire": next_reminder_time
+            "expire": expire
         })
 
     # TODO: async handling
     def get_expired_reminders(self):
-        now = datetime.now()
+        now = datetime.datetime.now()
         expired_rems = self.db.collection("reminders").where(
             "expire", "<=", now).get()
         return list(map(lambda k: from_dict(Reminder, k.to_dict()), expired_rems))
