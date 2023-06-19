@@ -7,6 +7,7 @@ from firebase import Database
 from models import Reminder
 from telegram import __version__ as TG_VER
 from telegram.ext import Application
+import datetime
 
 CYCLE_SLEEP_TIME_SEC = 30
 
@@ -28,6 +29,30 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
 
 load_dotenv()
 
+# TODO: Move this stuff
+# OCCURRENCE_MAP_MINUTES = {
+#     0: 60 * 24 * 3, # 3 Days
+#     1: 60 * 24 * 7, # 7 Days
+#     2: 60 * 24 * 10, # 10 Days
+#     3: 60 * 24 * 15, # 15 Days
+#     4: 60 * 24 * 30, # 30 Days
+#     5: 60 * 24 * 60, # 2 Months
+#     6: 60 * 24 * 90, # 3 Months
+#     7: 60 * 24 * 180, # 6 Months
+# }
+
+# TODO: Remove, values for testing
+OCCURRENCE_MAP_MINUTES = {
+    0: 1,
+    1: 2,
+    2: 3
+}
+def calc_next_reminder(prev_occurrence: int) -> datetime.datetime | None:
+    if prev_occurrence > 7:
+        return None
+    now = datetime.datetime.now()
+    next_reminder_time = now + datetime.timedelta(minutes=OCCURRENCE_MAP_MINUTES[prev_occurrence])
+    return next_reminder_time
 
 class RemindersServer:
     def __init__(self, token, db: Database):
@@ -51,14 +76,19 @@ class RemindersServer:
             logger.error(f"Failed to send reminder {r}: {e}")
             return
 
-        # Delete reminder from db
-        self.db.delete_reminder(r.id)
+        key = self.db.get_key(r.username, r.key)
+        expire = calc_next_reminder(key.reminders)
 
-        # # Update key expiration
+        # No more reminders from now on
+        if not expire:
+            # TODO: Delete key from db
+            return
+
+        # Create new reminder (will overwrite the old one, having the same synthetic id)
+        self.db.create_reminder(r.key, r.chat_id, r.username, expire, r.value)
+
+        # Update key expiration
         # self.db.update_key_expiration(r.username, r.key)
-
-        # # Create new reminder
-        # self.db.create_reminder(r.username, r.key, r.value, r.chat_id, r.expiration)
 
         return res
 
