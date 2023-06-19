@@ -30,25 +30,25 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
 load_dotenv()
 
 # TODO: Move this stuff
-# OCCURRENCE_MAP_MINUTES = {
-#     0: 60 * 24 * 3, # 3 Days
-#     1: 60 * 24 * 7, # 7 Days
-#     2: 60 * 24 * 10, # 10 Days
-#     3: 60 * 24 * 15, # 15 Days
-#     4: 60 * 24 * 30, # 30 Days
-#     5: 60 * 24 * 60, # 2 Months
-#     6: 60 * 24 * 90, # 3 Months
-#     7: 60 * 24 * 180, # 6 Months
-# }
+# OCCURRENCE_MAP_MINUTES = [
+#     60 * 24 * 3, # 3 Days
+#     60 * 24 * 7, # 7 Days
+#     60 * 24 * 10, # 10 Days
+#     60 * 24 * 15, # 15 Days
+#     60 * 24 * 30, # 30 Days
+#     60 * 24 * 60, # 2 Months
+#     60 * 24 * 90, # 3 Months
+#     60 * 24 * 180 # 6 Months
+# ]
 
 # TODO: Remove, values for testing
-OCCURRENCE_MAP_MINUTES = {
-    0: 1,
-    1: 2,
-    2: 3
-}
+OCCURRENCE_MAP_MINUTES = [
+    1,
+    2,
+    3
+]
 def calc_next_reminder(prev_occurrence: int) -> datetime.datetime | None:
-    if prev_occurrence > 7:
+    if prev_occurrence > len(OCCURRENCE_MAP_MINUTES) - 1:
         return None
     now = datetime.datetime.now()
     next_reminder_time = now + datetime.timedelta(minutes=OCCURRENCE_MAP_MINUTES[prev_occurrence])
@@ -81,6 +81,7 @@ class RemindersServer:
 
         # No more reminders from now on
         if not expire:
+            self.db.delete_reminder(r.id)
             # TODO: Delete key from db
             return
 
