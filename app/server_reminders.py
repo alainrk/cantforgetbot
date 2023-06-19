@@ -89,7 +89,10 @@ class RemindersServer:
         self.db.create_reminder(r.key, r.chat_id, r.username, expire, r.value)
 
         # Update key expiration
-        # self.db.update_key_expiration(r.username, r.key)
+        key.next_reminder = expire
+        key.reminders += 1
+        key.updated_at = datetime.datetime.now()
+        self.db.update_key(r.username, key)
 
         return res
 

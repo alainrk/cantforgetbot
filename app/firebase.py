@@ -106,6 +106,21 @@ class Database:
         self.create_reminder(key, user.id, user.username, next_reminder_time, value)
 
     # TODO: async handling
+    def update_key(self, username: str, key: Key):
+        k = self.db.collection("keys").document(username).get()
+        if not k.exists:
+            # TODO: raise exception and handle it
+            return None
+        keys = k.to_dict()
+        keys[key.key] = asdict(key)
+        self.db.collection("keys").document(username).set(keys)
+
+
+    ############################
+    # Reminders
+    ############################
+
+    # TODO: async handling
     # TODO: these params should not be here, a Reminder must be passed instead
     def create_reminder(self, key: str, chat_id: int, username: str, expire: datetime.datetime, value: str = ""):
         hash = hashlib.sha256(key.encode()).hexdigest()
