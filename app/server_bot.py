@@ -59,9 +59,6 @@ class BotServer:
         if not (await self.__auth_guard(update)):
             return
 
-        print(context.chat_data)
-        print(context._chat_id)
-
         # User retrieval
         user = self.db.get_user(update.effective_user.username)
         if not user:
@@ -77,7 +74,7 @@ class BotServer:
 
         # TODO: Move and place this stuff properly
 
-        print(update.message)
+        logger.info(update.message)
 
         # Step execution
         if is_command(update.message.text):

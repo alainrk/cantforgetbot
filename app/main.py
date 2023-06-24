@@ -24,7 +24,7 @@ def run_bot_server() -> None:
     # Setup firebase
     script_dir = os.path.dirname(os.path.realpath(__file__))
     key_file_path = os.path.join(
-        script_dir, "..", "data", firebaseProjectKeyFilename)
+        script_dir, "..", firebaseProjectKeyFilename)
     db = Database(DatabaseConfig(key_file_path))
 
     # TODO: Setup config object
@@ -42,7 +42,7 @@ def run_reminders_server() -> None:
     # Setup firebase
     script_dir = os.path.dirname(os.path.realpath(__file__))
     key_file_path = os.path.join(
-        script_dir, "..", "data", firebaseProjectKeyFilename)
+        script_dir, "..", firebaseProjectKeyFilename)
     db = Database(DatabaseConfig(key_file_path))
 
     # TODO: Setup config object
