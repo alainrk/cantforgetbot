@@ -1,0 +1,4 @@
+service: reminders
+runtime: python310
+env: standard
+entrypoint: python3 app/main.py --reminders-server

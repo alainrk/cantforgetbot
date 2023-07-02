@@ -1,0 +1,4 @@
+service: default
+runtime: python310
+env: standard
+entrypoint: python3 app/main.py --bot-server

@@ -14,3 +14,11 @@ run-bot:
 
 run-reminders:
 	python3 app/main.py --reminders-server
+
+deploy-bot:
+	gcloud app deploy --appyaml=app-bot.yaml
+
+deploy-reminders:
+	gcloud app deploy --appyaml=app-reminders.yaml
+
+deploy: deploy-bot deploy-reminders
