@@ -39,6 +39,13 @@ def run_reminders_server() -> None:
     # Get envs and config
     token = os.getenv("TOKEN")
 
+    # Get reminders occurrence frequency
+    occurrences = os.getenv("REMINDERS_EXPIRATIONS_MINUTES")
+    if occurrences is None:
+        logger.error("No reminders occurrence frequency specified")
+        return
+    occurrence_map_minutes = list(map(int, occurrences.split(",")))
+
     # Setup firebase
     script_dir = os.path.dirname(os.path.realpath(__file__))
     key_file_path = os.path.join(
@@ -47,7 +54,7 @@ def run_reminders_server() -> None:
 
     # TODO: Setup config object
 
-    app = RemindersServer(token, db)
+    app = RemindersServer(token, db, occurrence_map_minutes)
     asyncio.run(app.run())
 
 

@@ -29,35 +29,19 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
 
 load_dotenv()
 
-# TODO: Move this stuff
-# OCCURRENCE_MAP_MINUTES = [
-#     60 * 24 * 3, # 3 Days
-#     60 * 24 * 7, # 7 Days
-#     60 * 24 * 10, # 10 Days
-#     60 * 24 * 15, # 15 Days
-#     60 * 24 * 30, # 30 Days
-#     60 * 24 * 60, # 2 Months
-#     60 * 24 * 90, # 3 Months
-#     60 * 24 * 180 # 6 Months
-# ]
-
-# TODO: Remove, values for testing
-OCCURRENCE_MAP_MINUTES = [
-    1,
-    2,
-    3
-]
-def calc_next_reminder(prev_occurrence: int) -> datetime.datetime | None:
-    if prev_occurrence > len(OCCURRENCE_MAP_MINUTES) - 1:
-        return None
-    now = datetime.datetime.now()
-    next_reminder_time = now + datetime.timedelta(minutes=OCCURRENCE_MAP_MINUTES[prev_occurrence])
-    return next_reminder_time
 
 class RemindersServer:
-    def __init__(self, token, db: Database):
+    def __init__(self, token, db: Database, occurrence_map_minutes: list[int]):
         self.db = db
+        self.occurrence_map_minutes = occurrence_map_minutes
         self.application = Application.builder().token(token).build()
+
+    def calc_next_reminder(self, prev_occurrence: int) -> datetime.datetime | None:
+        if prev_occurrence > len(self.occurrence_map_minutes) - 1:
+            return None
+        now = datetime.datetime.now()
+        next_reminder_time = now + datetime.timedelta(minutes=self.occurrence_map_minutes[prev_occurrence])
+        return next_reminder_time
 
     # Send reminder to user, delete reminder from db and update the key
     async def expired_reminder_handler(self, r: Reminder):
@@ -77,12 +61,11 @@ class RemindersServer:
             return
 
         key = self.db.get_key(r.username, r.key)
-        expire = calc_next_reminder(key.reminders)
+        expire = self.calc_next_reminder(key.reminders)
 
         # No more reminders from now on
         if not expire:
             self.db.delete_reminder(r.id)
-            # TODO: Delete key from db
             return
 
         # Create new reminder (will overwrite the old one, having the same synthetic id)
