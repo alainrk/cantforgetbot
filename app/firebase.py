@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 from dataclasses import asdict
 
@@ -6,7 +7,6 @@ from dacite import from_dict
 from dotenv import load_dotenv
 from firebase_admin import credentials, firestore
 from models import Key, Reminder, User
-import datetime
 
 load_dotenv()
 

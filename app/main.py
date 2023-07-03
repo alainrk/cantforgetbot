@@ -1,5 +1,4 @@
 import argparse
-import asyncio
 import os
 
 import log
@@ -8,11 +7,34 @@ from firebase import Database, DatabaseConfig
 from server_bot import BotServer
 from server_reminders import RemindersServer
 
+
+import asyncio
+import threading
+from aiohttp import web
+
+
 firebaseProjectKeyFilename = "firebase-service-account-key.json"
 
 load_dotenv()
 
 logger = log.setup_logger(__name__)
+
+
+async def healthcheck(request):
+    return web.Response(text="OK")
+
+async def start_webserver():
+    app = web.Application()
+    app.router.add_get('/healthcheck', healthcheck)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', 8080)
+    await site.start()
+
+def run_webserver():
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    asyncio.get_event_loop().run_until_complete(start_webserver())
+    asyncio.get_event_loop().run_forever()
 
 
 def run_bot_server() -> None:
@@ -58,17 +80,26 @@ def run_reminders_server() -> None:
     asyncio.run(app.run())
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--bot-server', action='store_true',
                         help='Run as bot server')
     parser.add_argument('--reminders-server',
                         action='store_true', help='Run as reminders server')
-
     args = parser.parse_args()
+
+    webserver_thread = threading.Thread(target=run_webserver)
+    webserver_thread.start()
+
     if args.bot_server:
         run_bot_server()
     elif args.reminders_server:
         run_reminders_server()
     else:
         print("Please specify a server to run")
+        exit(1)
+
+    webserver_thread.join()
+
+if __name__ == "__main__":
+    main()

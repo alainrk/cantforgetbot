@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import time
 
 import log
@@ -7,7 +8,6 @@ from firebase import Database
 from models import Reminder
 from telegram import __version__ as TG_VER
 from telegram.ext import Application
-import datetime
 
 CYCLE_SLEEP_TIME_SEC = 30
 
