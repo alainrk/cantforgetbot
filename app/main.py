@@ -1,17 +1,14 @@
 import argparse
+import asyncio
 import os
+import threading
 
 import log
+from aiohttp import web
 from dotenv import load_dotenv
 from firebase import Database, DatabaseConfig
 from server_bot import BotServer
 from server_reminders import RemindersServer
-
-
-import asyncio
-import threading
-from aiohttp import web
-
 
 firebaseProjectKeyFilename = "firebase-service-account-key.json"
 
